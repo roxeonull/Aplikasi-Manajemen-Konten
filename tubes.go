@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Konten struct {
@@ -15,6 +16,7 @@ type Konten struct {
 
 var daftarKonten [100]Konten
 var jumlahKonten int = 0
+var nextAvailableID int = 1 
 
 func tambahKonten() {
 	if jumlahKonten >= 100 {
@@ -41,7 +43,7 @@ func tambahKonten() {
 	fmt.Scanln(&jumlahLike)
 
 	daftarKonten[jumlahKonten] = Konten{
-		ID:          jumlahKonten + 1,
+		ID:          nextAvailableID, 
 		Judul:       judul,
 		Kategori:    kategori,
 		Link:        link,
@@ -49,68 +51,22 @@ func tambahKonten() {
 		JumlahLike:  jumlahLike,
 	}
 	jumlahKonten++
+	nextAvailableID++ 
 
 	fmt.Println("Konten berhasil ditambahkan.")
 }
 
 func cariKonten(judul string) []Konten {
-	var hasilPencarian [100]Konten
-	hasilCount := 0
-	judulLower := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range judul { count++ }; return count }() {
-			break
-		}
-		char := judul[i]
-		if char >= 'A' && char <= 'Z' {
-			judulLower += string(char + ('a' - 'A'))
-		} else {
-			judulLower += string(char)
+	var hasilPencarian []Konten
+	judulLower := strings.ToLower(judul)
+
+	for i := 0; i < jumlahKonten; i++ {
+		kontenJudulLower := strings.ToLower(daftarKonten[i].Judul)
+		if strings.Contains(kontenJudulLower, judulLower) {
+			hasilPencarian = append(hasilPencarian, daftarKonten[i])
 		}
 	}
-	for i := 0; true; i++ {
-		if i >= jumlahKonten {
-			break
-		}
-		kontenJudulLower := ""
-		kontenJudul := daftarKonten[i].Judul
-		for j := 0; true; j++ {
-			if j >= func() int { count := 0; for range kontenJudul { count++ }; return count }() {
-				break
-			}
-			char := kontenJudul[j]
-			if char >= 'A' && char <= 'Z' {
-				kontenJudulLower += string(char + ('a' - 'A'))
-			} else {
-				kontenJudulLower += string(char)
-			}
-		}
-		n := 0
-		for range kontenJudulLower {
-			n++
-		}
-		m := 0
-		for range judulLower {
-			m++
-		}
-		if m == n {
-			match := true
-			for k := 0; true; k++ {
-				if k >= m {
-					break
-				}
-				if kontenJudulLower[k] != judulLower[k] {
-					match = false
-					break
-				}
-			}
-			if match {
-				hasilPencarian[hasilCount] = daftarKonten[i]
-				hasilCount++
-			}
-		}
-	}
-	return hasilPencarian[:hasilCount]
+	return hasilPencarian
 }
 
 func tampilkanSemuaKonten() {
@@ -119,10 +75,7 @@ func tampilkanSemuaKonten() {
 		return
 	}
 	fmt.Println("\nDaftar Semua Konten:")
-	for i := 0; true; i++ {
-		if i >= jumlahKonten {
-			return
-		}
+	for i := 0; i < jumlahKonten; i++ {
 		fmt.Printf("%d. Judul: %s, Kategori: %s, Link: %s, View: %d, Like: %d\n", daftarKonten[i].ID, daftarKonten[i].Judul, daftarKonten[i].Kategori, daftarKonten[i].Link, daftarKonten[i].JumlahView, daftarKonten[i].JumlahLike)
 	}
 }
@@ -134,82 +87,26 @@ func editKontenByJudul() {
 
 	fmt.Print("Masukkan judul konten yang ingin diubah: ")
 	fmt.Scanln(&judulCari)
-	judulCariLower := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range judulCari { count++ }; return count }() {
-			break
-		}
-		char := judulCari[i]
-		if char >= 'A' && char <= 'Z' {
-			judulCariLower += string(char + ('a' - 'A'))
-		} else {
-			judulCariLower += string(char)
-		}
-	}
+	judulCariLower := strings.ToLower(judulCari)
 
-	for i := 0; true; i++ {
-		if i >= jumlahKonten {
-			break
-		}
-		kontenJudulLower := ""
-		kontenJudul := daftarKonten[i].Judul
-		for j := 0; true; j++ {
-			if j >= func() int { count := 0; for range kontenJudul { count++ }; return count }() {
-				break
+	for i := 0; i < jumlahKonten; i++ {
+		kontenJudulLower := strings.ToLower(daftarKonten[i].Judul)
+		if strings.Contains(kontenJudulLower, judulCariLower) { 
+			fmt.Print("Masukkan judul baru (kosongkan jika tidak ingin diubah): ")
+			fmt.Scanln(&judulBaru)
+			if len(judulBaru) > 0 { 
+				daftarKonten[i].Judul = judulBaru
 			}
-			char := kontenJudul[j]
-			if char >= 'A' && char <= 'Z' {
-				kontenJudulLower += string(char + ('a' - 'A'))
-			} else {
-				kontenJudulLower += string(char)
-			}
-		}
-		n := 0
-		for range kontenJudulLower {
-			n++
-		}
-		m := 0
-		for range judulCariLower {
-			m++
-		}
-		if m <= n {
-			match := false
-			for k := 0; true; k++ {
-				if k > n-m {
-					break
-				}
-				isMatch := true
-				for l := 0; true; l++ {
-					if l >= m {
-						break
-					}
-					if kontenJudulLower[k+l] != judulCariLower[l] {
-						isMatch = false
-						break
-					}
-				}
-				if isMatch {
-					match = true
-					break
-				}
-			}
-			if match {
-				fmt.Print("Masukkan judul baru (kosongkan jika tidak ingin diubah): ")
-				fmt.Scanln(&judulBaru)
-				if func() int { count := 0; for range judulBaru { count++ }; return count }() > 0 {
-					daftarKonten[i].Judul = judulBaru
-				}
 
-				fmt.Print("Masukkan kategori baru (kosongkan jika tidak ingin diubah): ")
-				fmt.Scanln(&kategoriBaru)
-				if func() int { count := 0; for range kategoriBaru { count++ }; return count }() > 0 {
-					daftarKonten[i].Kategori = kategoriBaru
-				}
-
-				fmt.Println("Konten berhasil diubah.")
-				found = true
-				break
+			fmt.Print("Masukkan kategori baru (kosongkan jika tidak ingin diubah): ")
+			fmt.Scanln(&kategoriBaru)
+			if len(kategoriBaru) > 0 { 
+				daftarKonten[i].Kategori = kategoriBaru
 			}
+
+			fmt.Println("Konten berhasil diubah.")
+			found = true
+			break 
 		}
 	}
 
@@ -221,83 +118,30 @@ func editKontenByJudul() {
 func hapusKontenByJudul() {
 	var judulHapus string
 	foundIndex := -1
-	judulHapusLower := ""
 
 	fmt.Print("Masukkan judul konten yang ingin dihapus: ")
 	fmt.Scanln(&judulHapus)
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range judulHapus { count++ }; return count }() {
-			break
-		}
-		char := judulHapus[i]
-		if char >= 'A' && char <= 'Z' {
-			judulHapusLower += string(char + ('a' - 'A'))
-		} else {
-			judulHapusLower += string(char)
-		}
-	}
+	judulHapusLower := strings.ToLower(judulHapus)
 
-	for i := 0; true; i++ {
-		if i >= jumlahKonten {
-			break
-		}
-		kontenJudulLower := ""
-		kontenJudul := daftarKonten[i].Judul
-		for j := 0; true; j++ {
-			if j >= func() int { count := 0; for range kontenJudul { count++ }; return count }() {
-				break
-			}
-			char := kontenJudul[j]
-			if char >= 'A' && char <= 'Z' {
-				kontenJudulLower += string(char + ('a' - 'A'))
-			} else {
-				kontenJudulLower += string(char)
-			}
-		}
-		n := 0
-		for range kontenJudulLower {
-			n++
-		}
-		m := 0
-		for range judulHapusLower {
-			m++
-		}
-		if m <= n {
-			match := false
-			for k := 0; true; k++ {
-				if k > n-m {
-					break
-				}
-				isMatch := true
-				for l := 0; true; l++ {
-					if l >= m {
-						break
-					}
-					if kontenJudulLower[k+l] != judulHapusLower[l] {
-						isMatch = false
-						break
-					}
-				}
-				if isMatch {
-					match = true
-					break
-				}
-			}
-			if match {
-				foundIndex = i
-				break
-			}
+	for i := 0; i < jumlahKonten; i++ {
+		kontenJudulLower := strings.ToLower(daftarKonten[i].Judul)
+		if strings.Contains(kontenJudulLower, judulHapusLower) { 
+			foundIndex = i
+			break 
 		}
 	}
 
 	if foundIndex != -1 {
-		for i := foundIndex; true; i++ {
-			if i >= jumlahKonten-1 {
-				break
-			}
+		for i := foundIndex; i < jumlahKonten-1; i++ {
 			daftarKonten[i] = daftarKonten[i+1]
 		}
 		jumlahKonten--
+
+
+		for i := 0; i < jumlahKonten; i++ {
+			daftarKonten[i].ID = i + 1
+		}
+
 		fmt.Println("Konten berhasil dihapus.")
 	} else {
 		fmt.Println("Konten dengan judul tersebut tidak ditemukan.")
@@ -331,103 +175,28 @@ func urutkanKontenBerdasarkanLike() {
 	}
 
 	var urutan string
-
 	fmt.Print("Urutkan berdasarkan jumlah like (asc/desc): ")
 	fmt.Scanln(&urutan)
-	urutanLower := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range urutan { count++ }; return count }() {
-			break
-		}
-		char := urutan[i]
-		if char >= 'A' && char <= 'Z' {
-			urutanLower += string(char + ('a' - 'A'))
-		} else {
-			urutanLower += string(char)
-		}
-	}
+	urutanLower := strings.ToLower(urutan)
 
 	kontenUntukDiurutkan := daftarKonten
-	ascending := false
-	lowerAsc := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range "asc" { count++ }; return count }() {
-			break
-		}
-		char := "asc"[i]
-		if char >= 'A' && char <= 'Z' {
-			lowerAsc += string(char + ('a' - 'A'))
-		} else {
-			lowerAsc += string(char)
-		}
-	}
-	if func() bool {
-		count1 := 0; for range urutanLower { count1++ };
-		count2 := 0; for range lowerAsc { count2++ };
-		return count1 == count2
-	}() {
-		match := true
-		for i := 0; true; i++ {
-			if i >= func() int { count := 0; for range urutanLower { count++ }; return count }() {
-				break
-			}
-			if urutanLower[i] != lowerAsc[i] {
-				match = false
-				break
-			}
-		}
-		if match {
-			ascending = true
-		}
-	}
+	
+	ascending := (urutanLower == "asc")
 
 	selectionSortByLike(&kontenUntukDiurutkan, jumlahKonten, ascending)
 
 	fmt.Println("\nKonten diurutkan berdasarkan Jumlah Like (Selection Sort):")
-	if ascending {
-		fmt.Println(" (Ascending)")
+	if urutanLower == "asc" || urutanLower == "desc" {
+		if ascending {
+			fmt.Println(" (Ascending)")
+		} else {
+			fmt.Println(" (Descending)")
+		}
 		for i := 0; i < jumlahKonten; i++ {
 			fmt.Printf("Judul: %s, Like: %d\n", kontenUntukDiurutkan[i].Judul, kontenUntukDiurutkan[i].JumlahLike)
 		}
 	} else {
-		lowerDesc := ""
-		for i := 0; true; i++ {
-			if i >= func() int { count := 0; for range "desc" { count++ }; return count }() {
-				break
-			}
-			char := "desc"[i]
-			if char >= 'A' && char <= 'Z' {
-				lowerDesc += string(char + ('a' - 'A'))
-			} else {
-				lowerDesc += string(char)
-			}
-		}
-		match := true
-		if func() bool {
-			count1 := 0; for range urutanLower { count1++ };
-			count2 := 0; for range lowerDesc { count2++ };
-			return count1 == count2
-		}() {
-			for i := 0; true; i++ {
-				if i >= func() int { count := 0; for range urutanLower { count++ }; return count }() {
-					break
-				}
-				if urutanLower[i] != lowerDesc[i] {
-					match = false
-					break
-				}
-			}
-		} else {
-			match = false
-		}
-		if match {
-			fmt.Println(" (Descending)")
-			for i := 0; i < jumlahKonten; i++ {
-				fmt.Printf("Judul: %s, Like: %d\n", kontenUntukDiurutkan[i].Judul, kontenUntukDiurutkan[i].JumlahLike)
-			}
-		} else {
-			fmt.Println("Pilihan urutan tidak valid.")
-		}
+		fmt.Println("Pilihan urutan tidak valid.")
 	}
 }
 
@@ -457,103 +226,28 @@ func urutkanKontenBerdasarkanView() {
 	}
 
 	var urutan string
-
 	fmt.Print("Urutkan berdasarkan jumlah view (asc/desc): ")
 	fmt.Scanln(&urutan)
-	urutanLower := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range urutan { count++ }; return count }() {
-			break
-		}
-		char := urutan[i]
-		if char >= 'A' && char <= 'Z' {
-			urutanLower += string(char + ('a' - 'A'))
-		} else {
-			urutanLower += string(char)
-		}
-	}
+	urutanLower := strings.ToLower(urutan)
 
 	kontenUntukDiurutkan := daftarKonten
-	ascending := false
-	lowerAsc := ""
-	for i := 0; true; i++ {
-		if i >= func() int { count := 0; for range "asc" { count++ }; return count }() {
-			break
-		}
-		char := "asc"[i]
-		if char >= 'A' && char <= 'Z' {
-			lowerAsc += string(char + ('a' - 'A'))
-		} else {
-			lowerAsc += string(char)
-		}
-	}
-	if func() bool {
-		count1 := 0; for range urutanLower { count1++ };
-		count2 := 0; for range lowerAsc { count2++ };
-		return count1 == count2
-	}() {
-		match := true
-		for i := 0; true; i++ {
-			if i >= func() int { count := 0; for range urutanLower { count++ }; return count }() {
-				break
-			}
-			if urutanLower[i] != lowerAsc[i] {
-				match = false
-				break
-			}
-		}
-		if match {
-			ascending = true
-		}
-	}
+
+	ascending := (urutanLower == "asc")
 
 	insertionSortByView(&kontenUntukDiurutkan, jumlahKonten, ascending)
 
 	fmt.Println("\nKonten diurutkan berdasarkan Jumlah View (Insertion Sort):")
-	if ascending {
-		fmt.Println(" (Ascending)")
+	if urutanLower == "asc" || urutanLower == "desc" {
+		if ascending {
+			fmt.Println(" (Ascending)")
+		} else {
+			fmt.Println(" (Descending)")
+		}
 		for i := 0; i < jumlahKonten; i++ {
 			fmt.Printf("Judul: %s, View: %d\n", kontenUntukDiurutkan[i].Judul, kontenUntukDiurutkan[i].JumlahView)
 		}
 	} else {
-		lowerDesc := ""
-		for i := 0; true; i++ {
-			if i >= func() int { count := 0; for range "desc" { count++ }; return count }() {
-				break
-			}
-			char := "desc"[i]
-			if char >= 'A' && char <= 'Z' {
-				lowerDesc += string(char + ('a' - 'A'))
-			} else {
-				lowerDesc += string(char)
-			}
-		}
-		match := true
-		if func() bool {
-			count1 := 0; for range urutanLower { count1++ };
-			count2 := 0; for range lowerDesc { count2++ };
-			return count1 == count2
-		}() {
-			for i := 0; true; i++ {
-				if i >= func() int { count := 0; for range urutanLower { count++ }; return count }() {
-					break
-				}
-				if urutanLower[i] != lowerDesc[i] {
-					match = false
-					break
-				}
-			}
-		} else {
-			match = false
-		}
-		if match {
-			fmt.Println(" (Descending)")
-			for i := 0; i < jumlahKonten; i++ {
-				fmt.Printf("Judul: %s, View: %d\n", kontenUntukDiurutkan[i].Judul, kontenUntukDiurutkan[i].JumlahView)
-			}
-		} else {
-			fmt.Println("Pilihan urutan tidak valid.")
-		}
+		fmt.Println("Pilihan urutan tidak valid.")
 	}
 }
 
@@ -563,11 +257,12 @@ func binarySearch(minLike int) []Konten {
 	}
 
 	kontenUntukDiurutkan := daftarKonten
-	selectionSortByLike(&kontenUntukDiurutkan, jumlahKonten, true)
+	selectionSortByLike(&kontenUntukDiurutkan, jumlahKonten, true) 
 
 	var hasilPencarian []Konten
 	low := 0
 	high := jumlahKonten - 1
+	firstIndex := -1 
 
 	for low <= high {
 		mid := low + (high-low)/2
@@ -579,12 +274,10 @@ func binarySearch(minLike int) []Konten {
 		}
 	}
 
-	if firstIndex == -1 {
-		return []Konten{}
-	}
-
-	for i := firstIndex; i < jumlahKonten; i++ {
-		hasilPencarian = append(hasilPencarian, kontenUntukDiurutkan[i])
+	if firstIndex != -1 {
+		for i := firstIndex; i < jumlahKonten; i++ {
+			hasilPencarian = append(hasilPencarian, kontenUntukDiurutkan[i])
+		}
 	}
 
 	return hasilPencarian
@@ -603,22 +296,11 @@ func main() {
 		fmt.Println("6. Edit Konten berdasarkan Judul")
 		fmt.Println("7. Hapus Konten berdasarkan Judul")
 		fmt.Println("8. Cari Konten dengan Like Lebih dari 1000 (Binary Search)")
-		fmt.Println("9. Keluar")                                                   
+		fmt.Println("9. Keluar")
 		fmt.Print("Pilih opsi: ")
 
 		fmt.Scanln(&pilihan)
-		pilihanLower := ""
-		for i := 0; true; i++ {
-			if i >= func() int { count := 0; for range pilihan { count++ }; return count }() {
-				break
-			}
-			char := pilihan[i]
-			if char >= 'A' && char >= 'Z' {
-				pilihanLower += string(char + ('a' - 'A'))
-			} else {
-				pilihanLower += string(char)
-			}
-		}
+		pilihanLower := strings.ToLower(pilihan)
 
 		switch pilihanLower {
 		case "1":
@@ -628,13 +310,10 @@ func main() {
 			fmt.Print("Masukkan judul konten yang dicari: ")
 			fmt.Scanln(&judulCari)
 			hasil := cariKonten(judulCari)
-			if func() int { count := 0; for range hasil { count++ }; return count }() > 0 {
+			if len(hasil) > 0 { 
 				fmt.Println("\nHasil Pencarian:")
-				for i := 0; true; i++ {
-					if i >= func() int { count := 0; for range hasil { count++ }; return count }() {
-						break
-					}
-					fmt.Printf("Judul: %s, Kategori: %s, Link: %s, View: %d, Like: %d\n", hasil[i].Judul, hasil[i].Kategori, hasil[i].Link, hasil[i].JumlahView, hasil[i].JumlahLike)
+				for i := 0; i < len(hasil); i++ { 
+					fmt.Printf("ID: %d, Judul: %s, Kategori: %s, Link: %s, View: %d, Like: %d\n", hasil[i].ID, hasil[i].Judul, hasil[i].Kategori, hasil[i].Link, hasil[i].JumlahView, hasil[i].JumlahLike)
 				}
 			} else {
 				fmt.Println("Konten dengan judul tersebut tidak ditemukan.")
@@ -649,20 +328,17 @@ func main() {
 			editKontenByJudul()
 		case "7":
 			hapusKontenByJudul()
-		case "8": 
+		case "8":
 			hasil := binarySearch(1000)
-			if func() int { count := 0; for range hasil { count++ }; return count }() > 0 {
+			if len(hasil) > 0 { 
 				fmt.Println("\nKonten dengan Jumlah Like lebih dari 1000:")
-				for i := 0; true; i++ {
-					if i >= func() int { count := 0; for range hasil { count++ }; return count }() {
-						break
-					}
-					fmt.Printf("Judul: %s, Kategori: %s, Link: %s, View: %d, Like: %d\n", hasil[i].Judul, hasil[i].Kategori, hasil[i].Link, hasil[i].JumlahView, hasil[i].JumlahLike)
+				for i := 0; i < len(hasil); i++ { 
+					fmt.Printf("ID: %d, Judul: %s, Kategori: %s, Link: %s, View: %d, Like: %d\n", hasil[i].ID, hasil[i].Judul, hasil[i].Kategori, hasil[i].Link, hasil[i].JumlahView, hasil[i].JumlahLike)
 				}
 			} else {
 				fmt.Println("Tidak ada konten dengan Jumlah Like lebih dari 1000.")
 			}
-		case "9":	
+		case "9":
 			fmt.Println("Terima kasih!")
 			return
 		default:
